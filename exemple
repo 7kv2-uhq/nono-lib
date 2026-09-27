@@ -1,68 +1,156 @@
-local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/7kv2-uhq/nono-lib/refs/heads/main/loader"))()
--- OU si tu l'injectes direct, juste require/load le fichier
+local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/7kv2-uhq/nono-lib/refs/heads/main/loader.lua"))()
 
 local Win = Lib:CreateWindow({
-    Title    = "Mon Script",
-    Subtitle = "by Nono",
+    Title    = "NonoLib Demo",
+    Subtitle = "Toutes les features",
     Size     = UDim2.new(0, 580, 0, 420),
 })
 
-local Tab1 = Win:CreateTab({ Name = "⚡ Combat",  })
-local Tab2 = Win:CreateTab({ Name = "🎯 ESP",     })
-local Tab3 = Win:CreateTab({ Name = "⚙️ Config",  })
+-- TABS
+local TabButtons = Win:CreateTab({ Name = "🔘 Buttons" })
+local TabToggles = Win:CreateTab({ Name = "🔁 Toggles" })
+local TabSliders = Win:CreateTab({ Name = "🎚️ Sliders" })
+local TabMisc    = Win:CreateTab({ Name = "📋 Misc"    })
+local TabNotifs  = Win:CreateTab({ Name = "🔔 Notifs"  })
 
--- BOUTONS
-Tab1:Section("Mouvements")
-Tab1:Button({
-    Name        = "Speed Hack",
-    Description = "Boost ta vitesse x3",
-    Callback    = function()
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 50
+-- BUTTONS
+TabButtons:Section("Exemples de boutons")
+TabButtons:Button({
+    Name = "Simple Button", Description = "Print dans la console",
+    Callback = function() print("[NonoLib] Button cliqué !") end,
+})
+TabButtons:Button({
+    Name = "Speed x3", Description = "WalkSpeed = 50",
+    Callback = function()
+        local c = game.Players.LocalPlayer.Character
+        if c then c.Humanoid.WalkSpeed = 50 end
+    end,
+})
+TabButtons:Button({
+    Name = "Reset tout", Description = "Vitesse et jump par défaut",
+    Callback = function()
+        local c = game.Players.LocalPlayer.Character
+        if c then c.Humanoid.WalkSpeed = 16 ; c.Humanoid.JumpPower = 50 end
     end,
 })
 
--- TOGGLE
-Tab2:Toggle({
-    Name     = "ESP Joueurs",
-    Default  = false,
+-- TOGGLES
+TabToggles:Section("Exemples de toggles")
+TabToggles:Toggle({
+    Name = "Infinite Jump", Description = "Sauter à l'infini", Default = false,
     Callback = function(state)
-        print("ESP:", state)
+        if state then
+            _G.InfJump = game:GetService("UserInputService").JumpRequest:Connect(function()
+                game.Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping")
+            end)
+        else
+            if _G.InfJump then _G.InfJump:Disconnect() _G.InfJump = nil end
+        end
+        print("[NonoLib] Infinite Jump:", state)
+    end,
+})
+TabToggles:Toggle({
+    Name = "ESP Joueurs", Description = "Voir à travers les murs", Default = false,
+    Callback = function(state)
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= game.Players.LocalPlayer and p.Character then
+                local ex = p.Character:FindFirstChildOfClass("Highlight")
+                if state and not ex then
+                    local h = Instance.new("Highlight")
+                    h.FillColor = Color3.fromRGB(255,0,0)
+                    h.OutlineColor = Color3.fromRGB(255,255,255)
+                    h.FillTransparency = 0.5
+                    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    h.Parent = p.Character
+                elseif not state and ex then ex:Destroy() end
+            end
+        end
+        print("[NonoLib] ESP:", state)
+    end,
+})
+TabToggles:Toggle({
+    Name = "NoClip", Description = "Traverse les murs", Default = false,
+    Callback = function(state)
+        _G.NoClipActive = state
+        if state then
+            _G.NoClipConn = game:GetService("RunService").Stepped:Connect(function()
+                if not _G.NoClipActive then return end
+                local c = game.Players.LocalPlayer.Character
+                if c then for _, p in pairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = false end
+                end end
+            end)
+        else
+            if _G.NoClipConn then _G.NoClipConn:Disconnect() _G.NoClipConn = nil end
+        end
+        print("[NonoLib] NoClip:", state)
     end,
 })
 
--- SLIDER
-Tab3:Slider({
-    Name     = "WalkSpeed",
-    Min      = 16,
-    Max      = 200,
-    Default  = 16,
+-- SLIDERS
+TabSliders:Section("Exemples de sliders")
+TabSliders:Slider({
+    Name = "WalkSpeed", Min = 16, Max = 200, Default = 16,
     Callback = function(val)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = val
+        local c = game.Players.LocalPlayer.Character
+        if c then c.Humanoid.WalkSpeed = val end
+        print("[NonoLib] WalkSpeed:", val)
+    end,
+})
+TabSliders:Slider({
+    Name = "JumpPower", Min = 50, Max = 500, Default = 50,
+    Callback = function(val)
+        local c = game.Players.LocalPlayer.Character
+        if c then c.Humanoid.JumpPower = val end
+        print("[NonoLib] JumpPower:", val)
     end,
 })
 
--- DROPDOWN
-Tab3:Dropdown({
-    Name     = "Thème",
-    Options  = { "Violet", "Bleu", "Rouge" },
+-- MISC
+TabMisc:Section("Dropdown")
+TabMisc:Dropdown({
+    Name = "Mode de jeu", Options = { "Normal", "Speed", "God", "Ghost" },
     Callback = function(opt)
-        print("Thème choisi:", opt)
+        local c = game.Players.LocalPlayer.Character
+        if not c then return end
+        if opt == "Normal" then c.Humanoid.WalkSpeed=16 ; c.Humanoid.JumpPower=50
+        elseif opt == "Speed" then c.Humanoid.WalkSpeed=80 ; c.Humanoid.JumpPower=80
+        elseif opt == "God"   then c.Humanoid.WalkSpeed=200 ; c.Humanoid.JumpPower=300
+        elseif opt == "Ghost" then
+            for _, p in pairs(c:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        end
+        print("[NonoLib] Mode:", opt)
     end,
 })
-
--- INPUT
-Tab3:Input({
-    Name        = "Player Target",
-    Placeholder = "Nom du joueur...",
-    Callback    = function(text)
-        print("Target:", text)
+TabMisc:Section("Input")
+TabMisc:Input({
+    Name = "Teleport vers joueur", Placeholder = "Nom du joueur...",
+    Callback = function(text)
+        local target = game.Players:FindFirstChild(text)
+        if target and target.Character then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame =
+                target.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
+            print("[NonoLib] TP vers:", text)
+        else
+            print("[NonoLib] Joueur introuvable:", text)
+        end
     end,
 })
+TabMisc:Section("Labels")
+TabMisc:Label("Ceci est un label — juste du texte")
+TabMisc:Label("NonoLib v1.0 — discord.gg/nullstate")
 
--- NOTIF TEST
-Lib:Notify({
-    Title       = "Script chargé",
-    Description = "Tout est prêt chief",
-    Type        = "success",
-    Duration    = 5,
-})
+-- NOTIFS
+TabNotifs:Section("Types de notifications")
+TabNotifs:Button({ Name = "Notif Info",
+    Callback = function() Lib:Notify({ Title="Info", Description="Notif info", Type="info", Duration=3 }) end })
+TabNotifs:Button({ Name = "Notif Success",
+    Callback = function() Lib:Notify({ Title="Success ✅", Description="Tout bon chief", Type="success", Duration=3 }) end })
+TabNotifs:Button({ Name = "Notif Warning",
+    Callback = function() Lib:Notify({ Title="Warning ⚠️", Description="Fais gaffe", Type="warning", Duration=3 }) end })
+TabNotifs:Button({ Name = "Notif Danger",
+    Callback = function() Lib:Notify({ Title="Danger ❌", Description="Ça a merdé", Type="danger", Duration=3 }) end })
+
+print("loaded 1")
