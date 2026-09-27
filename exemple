@@ -1,4 +1,4 @@
-local Lib = loadstring(game:HttpGet("URL_DE_TON_SCRIPT"))()
+local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/7kv2-uhq/nono-lib/refs/heads/main/loader"))()
 -- OU si tu l'injectes direct, juste require/load le fichier
 
 local Win = Lib:CreateWindow({
