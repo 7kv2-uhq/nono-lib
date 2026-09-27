@@ -1,0 +1,68 @@
+local Lib = loadstring(game:HttpGet("URL_DE_TON_SCRIPT"))()
+-- OU si tu l'injectes direct, juste require/load le fichier
+
+local Win = Lib:CreateWindow({
+    Title    = "Mon Script",
+    Subtitle = "by Nono",
+    Size     = UDim2.new(0, 580, 0, 420),
+})
+
+local Tab1 = Win:CreateTab({ Name = "⚡ Combat",  })
+local Tab2 = Win:CreateTab({ Name = "🎯 ESP",     })
+local Tab3 = Win:CreateTab({ Name = "⚙️ Config",  })
+
+-- BOUTONS
+Tab1:Section("Mouvements")
+Tab1:Button({
+    Name        = "Speed Hack",
+    Description = "Boost ta vitesse x3",
+    Callback    = function()
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 50
+    end,
+})
+
+-- TOGGLE
+Tab2:Toggle({
+    Name     = "ESP Joueurs",
+    Default  = false,
+    Callback = function(state)
+        print("ESP:", state)
+    end,
+})
+
+-- SLIDER
+Tab3:Slider({
+    Name     = "WalkSpeed",
+    Min      = 16,
+    Max      = 200,
+    Default  = 16,
+    Callback = function(val)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = val
+    end,
+})
+
+-- DROPDOWN
+Tab3:Dropdown({
+    Name     = "Thème",
+    Options  = { "Violet", "Bleu", "Rouge" },
+    Callback = function(opt)
+        print("Thème choisi:", opt)
+    end,
+})
+
+-- INPUT
+Tab3:Input({
+    Name        = "Player Target",
+    Placeholder = "Nom du joueur...",
+    Callback    = function(text)
+        print("Target:", text)
+    end,
+})
+
+-- NOTIF TEST
+Lib:Notify({
+    Title       = "Script chargé",
+    Description = "Tout est prêt chief",
+    Type        = "success",
+    Duration    = 5,
+})
